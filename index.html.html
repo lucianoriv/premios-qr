@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Gana Premios Instantáneos!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #FF6B00;
+        }
+        .prize-result {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .prize-amount {
+            font-size: 48px;
+            font-weight: bold;
+            color: #FF6B00;
+        }
+        .claim-form {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #FF6B00;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>¡Reclama tu Premio!</h1>
+        <div class="prize-result" id="prizeResult">
+            <p>Verificando tu premio...</p>
+        </div>
+        <div class="claim-form" id="claimForm">
+            <h3>Ingresa tus datos:</h3>
+            <input type="text" placeholder="Nombre completo" required>
+            <input type="email" placeholder="Correo electrónico" required>
+            <button onclick="alert('Premio registrado con éxito');">Reclamar</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de premios
+        const prizes = [
+            { amount: 1, probability: 25 },   // 25%
+            { amount: 5, probability: 15 },   // 15%
+            { amount: 10, probability: 10 },  // 10%
+            { amount: 20, probability: 5 },   // 5%
+            { amount: 50, probability: 3 },   // 3%
+            { amount: 100, probability: 2 }   // 2%
+        ];
+        const noPrizeProbability = 40; // 40% sin premio
+
+        // Obtener parámetro de prueba
+        const urlParams = new URLSearchParams(window.location.search);
+        const testAmount = urlParams.get('test');
+
+        // Mostrar premio
+        function showPrize(amount) {
+            const prizeResult = document.getElementById('prizeResult');
+            const claimForm = document.getElementById('claimForm');
+
+            if (amount > 0) {
+                prizeResult.innerHTML = `
+                    <p>¡FELICIDADES!</p>
+                    <div class="prize-amount">$${amount}</div>
+                    <p>Código: PREM-${Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
+                `;
+                claimForm.style.display = 'block';
+            } else {
+                prizeResult.innerHTML = `
+                    <p>Esta vez no ganaste</p>
+                    <p>¡Sigue intentando en tu próxima compra!</p>
+                `;
+                claimForm.style.display = 'none';
+            }
+        }
+
+        // Modo prueba o aleatorio
+        if (testAmount !== null) {
+            // Si hay parámetro ?test=X, forzar ese premio
+            showPrize(Number(testAmount));
+        } else {
+            // Si no, asignar premio aleatorio
+            const random = Math.random() * 100;
+            let cumulativeProb = 0;
+            let prize = 0;
+
+            for (const p of prizes) {
+                cumulativeProb += p.probability;
+                if (random < (noPrizeProbability + cumulativeProb)) {
+                    prize = p.amount;
+                    break;
+                }
+            }
+            showPrize(prize);
+        }
+    </script>
+</body>
+</html>
