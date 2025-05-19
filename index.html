@@ -3,46 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>¡Gana Premios Instantáneos!</title>
+    <title>Sistema de Premios QR</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
             max-width: 600px;
             margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         h1 {
             color: #FF6B00;
+            text-align: center;
         }
-        .prize-result {
-            margin: 20px 0;
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 8px;
+        .form-group {
+            margin-bottom: 15px;
         }
-        .prize-amount {
-            font-size: 48px;
+        label {
+            display: block;
+            margin-bottom: 5px;
             font-weight: bold;
-            color: #FF6B00;
         }
-        .claim-form {
-            display: none;
-            margin-top: 20px;
-            text-align: left;
-        }
-        input, button {
+        input, select {
             width: 100%;
             padding: 10px;
-            margin: 8px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
@@ -50,124 +40,165 @@
             background: #FF6B00;
             color: white;
             border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 16px;
             cursor: pointer;
+            margin-top: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        #prizeResult {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .prize-amount {
+            font-size: 32px;
+            color: #FF6B00;
+            font-weight: bold;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>¡Reclama tu Premio!</h1>
-        <div class="prize-result" id="prizeResult">
+        
+        <!-- Sección del premio -->
+        <div id="prizeResult">
             <p>Verificando tu premio...</p>
         </div>
-        <div class="claim-form" id="claimForm">
-            <h3>Ingresa tus datos:</h3>
-            <input type="text" placeholder="Nombre completo" required>
-            <input type="email" placeholder="Correo electrónico" required>
-            <button onclick="alert('Premio registrado con éxito');">Reclamar</button>
-        </div>
+        
+        <!-- Formulario Pago Móvil -->
+        <form id="pagoMovilForm" class="hidden">
+            <h2>Datos para Pago Móvil</h2>
+            
+            <div class="form-group">
+                <label for="cedula">Cédula de Identidad*</label>
+                <input type="text" id="cedula" placeholder="Ej: V-12345678" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="nombreCompleto">Nombre Completo*</label>
+                <input type="text" id="nombreCompleto" placeholder="Como aparece en tu cuenta bancaria" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="banco">Banco*</label>
+                <select id="banco" required>
+                    <option value="">Selecciona tu banco</option>
+                    <option value="0102">Banco de Venezuela</option>
+                    <option value="0104">Venezuela</option>
+                    <option value="0105">Mercantil</option>
+                    <option value="0108">Provincial</option>
+                    <option value="0114">Bancaribe</option>
+                    <option value="0115">BFC</option>
+                    <option value="0116">Banplus</option>
+                    <option value="0134">Banesco</option>
+                    <option value="0151">BOD</option>
+                    <option value="0163">Banco del Tesoro</option>
+                    <option value="0166">Banco Agrícola</option>
+                    <option value="0168">Bancrecer</option>
+                    <option value="0169">Mi Banco</option>
+                    <option value="0171">Banco Activo</option>
+                    <option value="0172">Bancamiga</option>
+                    <option value="0174">Banplus</option>
+                    <option value="0175">Banco Plaza</option>
+                    <option value="0177">Banco Caroní</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="telefono">Teléfono*</label>
+                <input type="tel" id="telefono" placeholder="Ej: 04121234567" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="codigoReferencia">Código de Referencia (opcional)</label>
+                <input type="text" id="codigoReferencia" placeholder="Si tu banco lo requiere">
+            </div>
+            
+            <button type="submit">Solicitar Pago</button>
+        </form>
     </div>
 
+    <!-- Firebase y lógica de la aplicación -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <script>
-        // Configuración de premios
-        const prizes = [
-            { amount: 1, probability: 25 },   // 25%
-            { amount: 5, probability: 15 },   // 15%
-            { amount: 10, probability: 10 },  // 10%
-            { amount: 20, probability: 5 },   // 5%
-            { amount: 50, probability: 3 },   // 3%
-            { amount: 100, probability: 2 }   // 2%
-        ];
-        const noPrizeProbability = 40; // 40% sin premio
+        // Configuración de Firebase - ¡REEMPLAZA CON TUS DATOS!
+        const firebaseConfig = {
+            apiKey: "AIzaSyB...",
+            authDomain: "mrmantoro-premioqr.firebaseapp.com",
+            projectId: "mrmantoro-premioqr",
+            storageBucket: "mrmantoro-premioqr.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
 
-        // Obtener parámetro de prueba
-        const urlParams = new URLSearchParams(window.location.search);
-        const testAmount = urlParams.get('test');
+        // Inicializa Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        // Mostrar premio
-        function showPrize(amount) {
-            const prizeResult = document.getElementById('prizeResult');
-            const claimForm = document.getElementById('claimForm');
+        // Simulación de premio (puedes personalizar)
+        const premios = [0, 0, 0, 1, 1, 5, 5, 10, 20, 50, 100];
+        const premio = premios[Math.floor(Math.random() * premios.length)];
+        window.premioAsignado = premio; // Guardamos el premio como variable global
 
-            if (amount > 0) {
-                prizeResult.innerHTML = `
-                    <p>¡FELICIDADES!</p>
-                    <div class="prize-amount">$${amount}</div>
-                    <p>Código: PREM-${Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
-                `;
-                claimForm.style.display = 'block';
-            } else {
-                prizeResult.innerHTML = `
-                    <p>Esta vez no ganaste</p>
-                    <p>¡Sigue intentando en tu próxima compra!</p>
-                `;
-                claimForm.style.display = 'none';
-            }
-        }
+        // Mostrar resultado del premio
+        const prizeResult = document.getElementById('prizeResult');
+        const pagoMovilForm = document.getElementById('pagoMovilForm');
 
-        // Modo prueba o aleatorio
-        if (testAmount !== null) {
-            // Si hay parámetro ?test=X, forzar ese premio
-            showPrize(Number(testAmount));
+        if (premio > 0) {
+            prizeResult.innerHTML = `
+                <h2 style="color:#FF6B00;">¡FELICIDADES!</h2>
+                <div class="prize-amount">$${premio}</div>
+                <p>Por favor completa tus datos para recibir el pago via Pago Móvil</p>
+            `;
+            pagoMovilForm.classList.remove('hidden');
         } else {
-            // Si no, asignar premio aleatorio
-            const random = Math.random() * 100;
-            let cumulativeProb = 0;
-            let prize = 0;
-
-            for (const p of prizes) {
-                cumulativeProb += p.probability;
-                if (random < (noPrizeProbability + cumulativeProb)) {
-                    prize = p.amount;
-                    break;
-                }
-            }
-            showPrize(prize);
+            prizeResult.innerHTML = `
+                <p>Esta vez no ganaste un premio</p>
+                <p>¡Sigue intentando en tu próxima compra!</p>
+            `;
         }
+
+        // Manejar envío del formulario
+        document.getElementById('pagoMovilForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Obtener datos del formulario
+            const datosPago = {
+                cedula: document.getElementById('cedula').value,
+                nombre: document.getElementById('nombreCompleto').value,
+                banco: document.getElementById('banco').value,
+                nombreBanco: document.getElementById('banco').options[document.getElementById('banco').selectedIndex].text,
+                telefono: document.getElementById('telefono').value,
+                referencia: document.getElementById('codigoReferencia').value || 'N/A',
+                monto: premio,
+                fecha: new Date().toLocaleString('es-VE'),
+                estado: 'Pendiente'
+            };
+
+            try {
+                // Guardar en Firestore
+                await db.collection('premios').add(datosPago);
+                
+                alert(`¡Solicitud recibida! Se procesará tu pago de $${premio} via Pago Móvil al teléfono ${datosPago.telefono}`);
+                
+                // Opcional: Limpiar el formulario
+                document.getElementById('pagoMovilForm').reset();
+                
+            } catch (error) {
+                console.error("Error al guardar:", error);
+                alert("Ocurrió un error al registrar tu premio. Por favor inténtalo nuevamente.");
+            }
+        });
     </script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-
-<script>
-  // Configuración de Firebase (cambia por tus datos)
-  const firebaseConfig = {
-    apiKey: "AIzaSyB...",
-    authDomain: "mrmantoro-premioqr.firebaseapp.com",
-    projectId: "mrmantoro-premioqr",
-    storageBucket: "mrmantoro-premioqr.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef123456"
-  };
-
-  // Inicializa Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  // Función para guardar premios
-  async function guardarPremio() {
-    const datos = {
-      cedula: document.getElementById("cedula").value,
-      nombre: document.getElementById("nombreCompleto").value,
-      banco: document.getElementById("banco").value,
-      telefono: document.getElementById("telefono").value,
-      monto: window.premioAsignado, // Asegúrate de definir esta variable
-      fecha: new Date().toISOString(),
-      estado: "Pendiente"
-    };
-
-    try {
-      await db.collection("premios").add(datos);
-      alert("¡Premio registrado! Te contactaremos para el pago.");
-    } catch (error) {
-      alert("Error al registrar: " + error.message);
-    }
-  }
-
-  // Vincula al formulario
-  document.getElementById("pagoMovilForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    guardarPremio();
-  });
-</script>
 </body>
 </html>
