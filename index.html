@@ -1,150 +1,26 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reclama tu Premio - Pago Móvil</title>
+    <title>Premios QR</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 { color: #FF6B00; text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        button {
-            background: #FF6B00;
-            color: white;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .hidden { display: none; }
+        body { font-family: Arial; text-align: center; padding: 20px; }
+        .premio { font-size: 24px; margin: 20px; color: #FF6B00; }
+        button { background: #FF6B00; color: white; border: none; padding: 10px 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>¡Reclama tu Premio!</h1>
-        
-        <!-- Sección del premio -->
-        <div id="prizeResult">
-            <p>Verificando tu premio...</p>
-        </div>
-        
-        <!-- Formulario Pago Móvil (inicialmente oculto) -->
-        <form id="pagoMovilForm" class="hidden">
-            <h2>Datos para Pago Móvil</h2>
-            
-            <div class="form-group">
-                <label for="cedula">Cédula de Identidad*</label>
-                <input type="text" id="cedula" placeholder="Ej: V-12345678" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="nombreCompleto">Nombre Completo*</label>
-                <input type="text" id="nombreCompleto" placeholder="Como aparece en tu cuenta bancaria" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="banco">Banco*</label>
-                <select id="banco" required>
-                    <option value="">Selecciona tu banco</option>
-                    <option value="0102">Banco de Venezuela</option>
-                    <option value="0104">Venezuela</option>
-                    <option value="0105">Mercantil</option>
-                    <option value="0108">Provincial</option>
-                    <option value="0114">Bancaribe</option>
-                    <option value="0115">BFC</option>
-                    <option value="0116">Banplus</option>
-                    <option value="0134">Banesco</option>
-                    <option value="0151">BOD</option>
-                    <option value="0163">Banco del Tesoro</option>
-                    <option value="0166">Banco Agrícola</option>
-                    <option value="0168">Bancrecer</option>
-                    <option value="0169">Mi Banco</option>
-                    <option value="0171">Banco Activo</option>
-                    <option value="0172">Bancamiga</option>
-                    <option value="0174">Banplus</option>
-                    <option value="0175">Banco Plaza</option>
-                    <option value="0177">Banco Caroní</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="telefono">Teléfono*</label>
-                <input type="tel" id="telefono" placeholder="Ej: 04121234567" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="codigoReferencia">Código de Referencia (opcional)</label>
-                <input type="text" id="codigoReferencia" placeholder="Si tu banco lo requiere">
-            </div>
-            
-            <button type="submit">Solicitar Pago</button>
-        </form>
-    </div>
-
+    <h1>¡Reclama tu Premio!</h1>
+    <div id="resultado"></div>
+    
     <script>
-        // Simulación de asignación de premio
-        const premios = [0, 0, 0, 1, 5, 10, 20, 50, 100];
-        const premio = premios[Math.floor(Math.random() * premios.length)];
+        // Detectar parámetro ?test=X
+        const urlParams = new URLSearchParams(window.location.search);
+        const premio = urlParams.get('test') || [0,0,0,1,5,10,20,50,100][Math.floor(Math.random() * 9)];
         
         // Mostrar resultado
-        const prizeResult = document.getElementById('prizeResult');
-        const pagoMovilForm = document.getElementById('pagoMovilForm');
-        
-        if (premio > 0) {
-            prizeResult.innerHTML = `
-                <h2 style="color:#FF6B00;">¡GANASTE $${premio}!</h2>
-                <p>Por favor completa tus datos para recibir el pago via Pago Móvil</p>
-            `;
-            pagoMovilForm.classList.remove('hidden');
-        } else {
-            prizeResult.innerHTML = `
-                <p>Esta vez no ganaste un premio</p>
-                <p>¡Sigue intentando en tu próxima compra!</p>
-            `;
-        }
-        
-        // Manejar envío del formulario
-        document.getElementById('pagoMovilForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Obtener datos del formulario
-            const datosPago = {
-                cedula: document.getElementById('cedula').value,
-                nombre: document.getElementById('nombreCompleto').value,
-                banco: document.getElementById('banco').value,
-                telefono: document.getElementById('telefono').value,
-                codigo: document.getElementById('codigoReferencia').value || 'N/A',
-                monto: premio,
-                fecha: new Date().toLocaleString()
-            };
-            
-            // Aquí iría la conexión con tu backend/base de datos
-            console.log("Datos para Pago Móvil:", datosPago);
-            
-            // Simular envío exitoso
-            alert(`¡Solicitud recibida! Se procesará tu pago de $${premio} via Pago Móvil al teléfono ${datosPago.telefono}`);
-        });
+        document.getElementById("resultado").innerHTML = premio > 0 
+            ? `<div class="premio">¡GANASTE $${premio}!</div>` 
+            : "<p>Esta vez no ganaste</p>";
     </script>
 </body>
 </html>
